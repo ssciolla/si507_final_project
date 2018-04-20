@@ -218,7 +218,7 @@ def rerun_or_load(mode):
         stories_file_open.close()
         return poe_stories
     elif mode == "load":
-        stories_file_open = open("stories.json", "r")
+        stories_file_open = open("stories.json", "r", encoding="utf-8")
         poe_stories = json.loads(stories_file_open.read())
         return poe_stories
 
@@ -496,7 +496,7 @@ def create_joint_table(stories_dict, words_dict):
 
 if __name__=="__main__":
     # Collecting and conducting initial analysis of data
-    poe_stories = rerun_or_load("rerun")
+    poe_stories = rerun_or_load("load")
     common_long_words_dict = find_common_longest_words(poe_stories)
 
     # Calling functions to create and populate database tables

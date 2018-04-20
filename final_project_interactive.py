@@ -4,10 +4,6 @@ import sqlite3
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-# import codecs
-# import sys
-# sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
-
 DBNAME = "poe_short_stories.db"
 
 ## Class definitions for accessing and representing data from poe_short_stories.db
@@ -140,7 +136,7 @@ class Collection:
             median_length.append(tup[2])
         trace0 = go.Scatter(
             x = year_story,
-            y = median_length ,
+            y = median_length,
             name = 'Median Sentence Lengths',
             line = dict(
                 color = ('rgb(18, 10, 135)'),
@@ -266,7 +262,6 @@ def prepare_words_data():
     return word_instances
 
 # Creating a pie graph of centuries for a presentation option
-
 def make_pie_graph_of_centuries(list_of_word_instances):
     entries = []
     for word in list_of_word_instances:
