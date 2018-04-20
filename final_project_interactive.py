@@ -4,9 +4,9 @@ import sqlite3
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-import codecs
-import sys
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
+# import codecs
+# import sys
+# sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
 
 DBNAME = "poe_short_stories.db"
 
@@ -80,11 +80,11 @@ class Story:
             y = sentence_length,
             name = 'Sentence_Length',
             line = dict(
-                color = ('rgb(205, 12, 24)'), # Mix up color
-                width = 4)
+                color = ('rgb(18, 10, 135)'),
+                width = 3)
         )
         data = [trace0]
-        layout = dict(title = 'Sentence Length for Each Sentence in "{}"'.format(self.name),
+        layout = dict(title = 'Length of Each Sentence in "{}"'.format(self.name),
             xaxis = dict(title = 'Sentence Position in Story'),
             yaxis = dict(title = 'Sentence Length in Words'),
         )
@@ -112,7 +112,7 @@ class Story:
             )
         data = [trace0]
         layout = go.Layout(
-            title='Ten Most Common Proper Nouns in {}'.format(self.name),
+            title='Ten Most Common Proper Nouns in "{}"'.format(self.name),
         )
         fig = go.Figure(data=data, layout=layout)
         py.plot(fig, filename='text-hover-bar')
@@ -143,8 +143,8 @@ class Collection:
             y = median_length ,
             name = 'Median Sentence Lengths',
             line = dict(
-                color = ('rgb(205, 12, 24)'),
-                width = 4)
+                color = ('rgb(18, 10, 135)'),
+                width = 3)
         )
         data = [trace0]
         layout = dict(title = "Median Sentence Length for Edgar Allan Poe Stories by Year",
@@ -204,7 +204,7 @@ class Word:
         conn.close()
 
     def __str__(self):
-        string_rep = "{}: Times longest: {}; Dictionary entries: {}".format(self.word, self.frequency, len(self.entries))
+        string_rep = "{}: times longest: {}; dictionary entries: {}".format(self.word, self.frequency, len(self.entries))
         return string_rep
 
     def display_entries_info(self):
@@ -235,7 +235,7 @@ class Word:
             appear_string += '{}) "{}", sentence {}: {}\n'.format(appear_num, tup[0], tup[1], tup[2])
         return appear_string
 
-# Functions
+# Functions to collect data
 
 def prepare_stories_data():
     conn = sqlite3.connect(DBNAME)
@@ -265,6 +265,8 @@ def prepare_words_data():
         word_instances.append(Word(word[0]))
     return word_instances
 
+# Creating a pie graph of centuries for a presentation option
+
 def make_pie_graph_of_centuries(list_of_word_instances):
     entries = []
     for word in list_of_word_instances:
@@ -286,23 +288,18 @@ def make_pie_graph_of_centuries(list_of_word_instances):
                 new_date = "16th century"
             elif date_num >= 1400 and date_num < 1500:
                 new_date = "15th century"
-            else:
-                print("Something fell through the cracks!")
             centuries.append(new_date)
         else:
             centuries.append(date)
 
     freq_dist = nltk.FreqDist(centuries)
-    print(freq_dist)
     labels = []
     values = []
-    for sample in freq_dist.most_common(9):
+    for sample in freq_dist.most_common():
         labels.append(sample[0])
         values.append(sample[1])
-    print(freq_dist.most_common(9))
 
     trace = go.Pie(labels=labels, values=values)
-
     py.plot([trace], filename='basic_pie_chart')
 
     pass
@@ -389,7 +386,7 @@ You can also enter "Menu" to return to the main menu.
                                         for sentence in story.fetch_first_ten_sentences():
                                             print(*sentence)
                                         print('''
-You can view a line graph tracking how the sentence length changes over the course of the story.
+You can view a line graph tracking how sentence lengths change over the course of the story.
 Or you can view a bar chart showing the 10 most common proper nouns in the story.
 Your main options are to enter "Sentences" or "Nouns".
 Or you can enter "Stories" to return to the Short Stories menu.
@@ -415,7 +412,7 @@ Or you can enter "Stories" to return to the Short Stories menu.
 {} total stories
 You can see data related to words that are commonly the longest words.
 Or you can view a graph showing how stories' median sentence length changed over time.\n
-Your main options are to enter "Words" or "Graph".
+Your main options are to enter "Words" or "Sentences".
 You can also enter "Menu" to return to the starting menu.
 // What will you do next? //'''.format(poe_collection.collection_name, poe_collection.num_of_stories))
                         entry = input(">>> ")
@@ -423,10 +420,10 @@ You can also enter "Menu" to return to the starting menu.
                         if result == True:
                             if entry == "menu":
                                 stay_at_collection = False
-                            elif entry not in ["words", "graph"]:
+                            elif entry not in ["words", "sentences"]:
                                 print("You did not enter a valid option. Try again.")
                             else:
-                                if entry == "graph":
+                                if entry == "sentences":
                                     print("Creating a line graph using Plotly...")
                                     poe_collection.make_collection_sentence_graph()
                                 elif entry == "words":
@@ -436,8 +433,8 @@ You can also enter "Menu" to return to the starting menu.
                                         print("\n* Longest Words *")
                                         print('''The 100 words that are most commonly the longest word (or tied for the longest) in Poe's sentences have been identified.
 You can explore a list of the words and details about them, including frequencies, definitions, and sentences.
-Or you can view a pie chart showing how many words originated in various time periods.
-Your main options are to enter "List" or "Chart".
+Or you can view a pie chart displaying the distribution of centuries the words originated in.
+Your main options are to enter "List" or "Centuries".
 You can also enter "Collection" to return to the previous menu.
 // What will you do next? //''')
                                         entry = input(">>> ")
@@ -445,10 +442,10 @@ You can also enter "Collection" to return to the previous menu.
                                         if result == True:
                                             if entry == "collection":
                                                 stay_at_words = False
-                                            elif entry not in ["list", "chart"]:
+                                            elif entry not in ["list", "centuries"]:
                                                 print("You did not enter a valid option. Try again.")
                                             else:
-                                                if entry == "chart":
+                                                if entry == "centuries":
                                                     make_pie_graph_of_centuries(longest_words)
                                                 elif entry == "list":
                                                     stay_at_list = True
@@ -470,7 +467,7 @@ You can also enter "Words" to return to the previous menu.
                                                         if option not in ["words", "sentences", "dictionary"]:
                                                             print("You did not enter a valid option. Try again.")
                                                         else:
-                                                            if option == "words":
+                                                            if option == "words": # What about "word something"?
                                                                 stay_at_list = False
                                                             else:
                                                                 if len(terms) != 2:
