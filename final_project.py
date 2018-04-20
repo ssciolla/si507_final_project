@@ -4,7 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 import string
 import nltk
-# nltk.download('averaged_perceptron_tagger')
 import sqlite3
 
 import codecs
@@ -17,7 +16,7 @@ DBNAME = 'poe_short_stories.db'
 
 # Setting up cache
 try:
-    cache_file = open(CACHE_FNAME, 'r')
+    cache_file = open(CACHE_FNAME, 'r', encoding="utf-8")
     cache_contents = cache_file.read()
     CACHE_DICTION = json.loads(cache_contents)
     cache_file.close()
@@ -40,10 +39,10 @@ def make_request_using_cache(url, params=None):
     else:
         cache_url = url
     if cache_url in CACHE_DICTION.keys():
-        print("Getting cached data...")
+        #print("Getting cached data...")
         return CACHE_DICTION[cache_url]
     else:
-        print("Making a request for new data...")
+        #print("Making a request for new data...")
         if params != None:
             response = requests.get(url, params)
             CACHE_DICTION[cache_url] = response.text
@@ -64,14 +63,16 @@ def extract_poe_story(url_ending):
     return story
 
 # Joining paragraphs while removing titles and introductory notes and concluding public domain paragraphs
-# (Note: Particular sentences and stories are referenced in an effort to catch or allow exceptions)
+# (Note: Particular sentences and stories are referenced in an effort to catch or allow exceptions.)
+# (Note: Line 75 uses the number 6, which is arbitrary; essentially, I chose to look through the first several <p> tags to look for
+# titles in all capital letters and publication notes, which are not part of the main story text and are irregular.)
 def join_paragraphs(html):
     all_paragraphs = html.find_all("p")
     text_of_paragraphs = []
     index = 0
     for para in all_paragraphs:
         raw_text = para.text.strip()
-        if index < 6: # Hardcoded by necessity
+        if index < 6:
             accum = 0
             for char in raw_text:
                 if char in string.ascii_letters:
@@ -109,7 +110,7 @@ def crawl_for_poe_stories():
         tds = line.find_all("td")
         title = tds[0].find("a").text
         story_dictionary[title] = {"url ending": tds[0].find("a")["href"], "year": tds[1].text}
-    # These are stories that either have multiple versions on Wikisource or have multiple chapters on separate pages.
+    # These are stories that either have multiple versions or multiple chapters on separate pages on Wikisource.
     tricky_stories = ["The Fall of the House of Usher", "Eleonora", "Morella", "The Black Cat",
                       "The Facts in the Case of M. Valdemar", "The Journal of Julius Rodman"]
     for story in story_dictionary.keys():
@@ -205,7 +206,7 @@ def create_data_from_sentences(sentences):
     return story_data
 
 # Control function that either processes the raw HTML from Wikisource or pulls processed data from stories.json.
-# (Note: This function was created to save run time, as processing the raw HTML can be time-intensive.)
+# (Note: This function was created to save execution time, as processing the raw HTML can be time-intensive.)
 def rerun_or_load(mode):
     if mode == "rerun":
         poe_stories = crawl_for_poe_stories()
@@ -217,9 +218,10 @@ def rerun_or_load(mode):
         stories_file_open.write(json.dumps(poe_stories, indent=4))
         stories_file_open.close()
         return poe_stories
-    elif mode == "load":
+    if mode == "load" or mode =="rerun":
         stories_file_open = open("stories.json", "r", encoding="utf-8")
         poe_stories = json.loads(stories_file_open.read())
+        stories_file_open.close()
         return poe_stories
 
 # Processing XML and organizing data from Merriam-Webster API for longest words data
@@ -237,7 +239,6 @@ def gather_dictionary_data_for_word(word):
     url = "https://www.dictionaryapi.com/api/v1/references/collegiate/xml/{}?".format(word)
     data = make_request_using_cache(url, params)
     xml = BeautifulSoup(data, "xml")
-    # print(xml.prettify())
     entries = xml.find_all("entry")
     data_for_word = []
     for entry in entries:
@@ -248,7 +249,7 @@ def gather_dictionary_data_for_word(word):
                 headword += char
         result_tup = compare_headword_to_word(headword, word)
         if result_tup[0] == True:
-            # definitions
+            # Definitions
             dts = entry.find_all("dt")
             definitions = []
             for dt in dts:
@@ -258,27 +259,23 @@ def gather_dictionary_data_for_word(word):
                     part_of_speech = entry.find("fl").text
                 else:
                     part_of_speech = None
-                # word defined
+                # Word defined
                 if result_tup[1] == None:
                     word_defined = word
                 else:
                     word_defined = headword
-                # date
+                # Date
                 if entry.find("date") != None:
                     date = entry.find("date").text
                 else:
                     date = None
-                # pronunciation
+                # Pronunciation
                 if entry.find("pr") != None:
                     pronunciation = entry.find("pr").text
                 else:
                     pronunciation = None
                 entry_data = [word_defined, part_of_speech, definitions, date, pronunciation]
                 data_for_word.append(entry_data)
-            # else:
-            #     print("No definitions? " + word)
-        # else:
-        #     print(headword + " is not exactly " + word)
     return data_for_word
 
 def find_common_longest_words(story_dictionary):
@@ -287,7 +284,7 @@ def find_common_longest_words(story_dictionary):
         story_data = poe_stories[story]["story data"]
         for sentence_data in story_data:
             for longest_word in sentence_data[-1]:
-                if len(longest_word) >= 6: # Need to note this decision somewhere
+                if len(longest_word) >= 6:
                     longest_words.append(longest_word)
     freq_dist = nltk.FreqDist(longest_words)
     most_common = freq_dist.most_common(100)
@@ -495,7 +492,7 @@ def create_joint_table(stories_dict, words_dict):
 ## Main Program
 
 if __name__=="__main__":
-    # Collecting and conducting initial analysis of data
+    # Collecting and conducting initial analysis of data for stories and words
     poe_stories = rerun_or_load("load")
     common_long_words_dict = find_common_longest_words(poe_stories)
 

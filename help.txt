@@ -1,0 +1,26 @@
+
+* Help Page *
+
+In this program, you will be presented with a series of options, with explanations in each menu. The hierarchy of the system is
+laid out below. Lines with stars before them represent possible choices, with the term in quotation marks after representing
+what entry is needed to reach the corresponding menu. Entries are not case sensitive. Lines without stars indicate
+content that will appear automatically in the menu indicated by a star directly above it. To return to the previous menu, enter the term
+in parentheses at the next highest level. To exit the program completely, return to the Main Menu and enter "Quit".
+
+Program Hierarchy
+
+* Main Menu ("Menu")
+     * Short Stories ("Stories")
+          Numbered List of Short Stories
+          * "[Specific Short Story Name]" ("[#]")
+               First Ten Sentences
+               * Line Graph of Sentence Lengths ("Sentences")
+               * Bar Chart of Proper Nouns ("Nouns")
+     * Collection ("Collection")
+          * Longest Words ("Words")
+               * Pie Chart of Century Origins of Longest Words ("Centuries")
+               * List of Longest Words ("List")
+                    List of Longest Words
+                    * Appearances of Longest Word in Sentences from Short Stories ("Sentences [#]")
+                    * Dictionary entries for Specific Longest Word ("Dictionary [#]")
+               * Line Graph of Short Stories' Median Sentence Length by Year ("Sentences")

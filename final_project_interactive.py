@@ -1,12 +1,8 @@
-import string
-import nltk
-import sqlite3
 import plotly.plotly as py
 import plotly.graph_objs as go
+from final_project import *
 
-DBNAME = "poe_short_stories.db"
-
-## Class definitions for accessing and representing data from poe_short_stories.db
+## Class definitions for accessing and presenting data from poe_short_stories.db
 
 class Story:
 
@@ -80,7 +76,7 @@ class Story:
                 width = 3)
         )
         data = [trace0]
-        layout = dict(title = 'Length of Each Sentence in "{}"'.format(self.name),
+        layout = dict(title = 'Length in Words of Each Sentence in "{}"'.format(self.name),
             xaxis = dict(title = 'Sentence Position in Story'),
             yaxis = dict(title = 'Sentence Length in Words'),
         )
@@ -89,6 +85,7 @@ class Story:
         pass
 
     def make_proper_nouns_chart(self):
+        print("Creating bar chart using Plotly...")
         noun = []
         frequency = []
         for tup in self.proper_nouns:
@@ -204,7 +201,7 @@ class Word:
         return string_rep
 
     def display_entries_info(self):
-        entries_string_rep = '* Entries for "{}" and related words from Meriam-Webster.com *\n\n'.format(self.word)
+        entries_string_rep = '\n* Entries for "{}" and related words from Meriam-Webster.com *\n'.format(self.word)
         entry_num = 0
         for entry in self.entries:
             entry_num += 1
@@ -231,7 +228,7 @@ class Word:
             appear_string += '{}) "{}", sentence {}: {}\n'.format(appear_num, tup[0], tup[1], tup[2])
         return appear_string
 
-# Functions to collect data
+## Functions to collect data for presentation purposes
 
 def prepare_stories_data():
     conn = sqlite3.connect(DBNAME)
@@ -261,8 +258,9 @@ def prepare_words_data():
         word_instances.append(Word(word[0]))
     return word_instances
 
-# Creating a pie graph of centuries for a presentation option
-def make_pie_graph_of_centuries(list_of_word_instances):
+# Creating a pie chart of centuries for a presentation option
+def make_pie_chart_of_centuries(list_of_word_instances):
+    print("Creating pie chart using Plotly...")
     entries = []
     for word in list_of_word_instances:
         entries += word.entries
@@ -286,18 +284,19 @@ def make_pie_graph_of_centuries(list_of_word_instances):
             centuries.append(new_date)
         else:
             centuries.append(date)
-
     freq_dist = nltk.FreqDist(centuries)
     labels = []
     values = []
     for sample in freq_dist.most_common():
         labels.append(sample[0])
         values.append(sample[1])
-
     trace = go.Pie(labels=labels, values=values)
     py.plot([trace], filename='basic_pie_chart')
-
     pass
+
+## Interactive Prompt
+
+# Functions for validating types of entries
 
 def validate_entry_length(entry):
     terms = entry.split()
@@ -321,30 +320,29 @@ def validate_number_option(entry, length):
     else:
         return True
 
-## Interactive Prompt
+# Beginning of prompt
 
-print("SI 507 Final Project")
-print("Analyzing Edgar Allan Poe Short Stories")
-print("by Sam Sciolla")
-print('''("Tear up the planks!" - The Tell-Tale Heart)''')
-
+print('''SI 507 Final Project
+Basic Text Analysis of Edgar Allan Poe Short Stories
+by Sam Sciolla
+("Tear up the planks!" - The Tell-Tale Heart)''')
 in_progress = True
 while in_progress:
     entry = input('''\n* Main Menu *
+You can explore the results of my analysis of Edgar Allan Poe's short stories by individual story or as a collection.
 Your main options are to enter "Stories" and "Collection".
 You can also enter "Help" to learn more about the options or "Quit" to exit the program
 // What will you do first? //
 >>> ''')
     result = validate_entry_length(entry)
     if result == True:
+        entry = entry.lower()
         if entry not in ["collection", "stories", "help", "quit"]:
             print("You did not enter a valid option. Try again.")
         else:
-            if entry == "help": #RETURN TO THIS
-                print('''
-// Option 1: Stories //
-// Option 2: Collection //
-                ''')
+            if entry == "help":
+                help_file_open = open("help.txt", "r")
+                print(help_file_open.read())
             elif entry == "quit":
                 print("THE END")
                 in_progress = False
@@ -359,14 +357,15 @@ You can also enter "Help" to learn more about the options or "Quit" to exit the 
                             story_num += 1
                             print('{}) {}'.format(story_num, story.__str__()))
                         print('''
-On Wikisource, there are {} short stories available by Edgar Allan Poe.
-Here you can read the first 10 sentences of each story and view graphs about sentence_lengths and proper nouns.
+Wikisource provides the the full text of {} short stories by Edgar Allan Poe.
+Here you can read the first ten sentences of each story and view graphs displaying sentence lengths and common proper nouns.
 Enter the number from the list above that corresponds to the story you want to learn more about.
-You can also enter "Menu" to return to the main menu.
+You can also enter "Menu" to return to the Main Menu.
 // What will you do next? //'''.format(len(stories)))
                         entry = input(">>> ")
                         result = validate_entry_length(entry)
                         if result == True:
+                            entry = entry.lower()
                             if entry == "menu":
                                 stay_at_stories = False
                             else:
@@ -381,14 +380,15 @@ You can also enter "Menu" to return to the main menu.
                                         for sentence in story.fetch_first_ten_sentences():
                                             print(*sentence)
                                         print('''
-You can view a line graph tracking how sentence lengths change over the course of the story.
-Or you can view a bar chart showing the 10 most common proper nouns in the story.
+Here you can view a line graph tracking how sentence lengths change over the course of the story.
+Or you can view a bar chart showing the ten most common proper nouns in the story.
 Your main options are to enter "Sentences" or "Nouns".
 Or you can enter "Stories" to return to the Short Stories menu.
 // What will you do next? //''')
                                         entry = input(">>> ")
                                         result = validate_entry_length(entry)
                                         if result == True:
+                                            entry = entry.lower()
                                             if entry not in ["sentences", "nouns", "stories"]:
                                                 print("You did not enter a valid option. Try again.")
                                             else:
@@ -404,15 +404,16 @@ Or you can enter "Stories" to return to the Short Stories menu.
                     while stay_at_collection:
                         print("\n* Collection *")
                         print('''{}
-{} total stories
-You can see data related to words that are commonly the longest words.
-Or you can view a graph showing how stories' median sentence length changed over time.\n
+This data draws from the text of all {} stories by Edgar Allan Poe on Wikisource.
+You can see data related to words that are most commonly the longest words in his sentences.
+Or you can view a graph showing how the median sentence length of his stories changed over time.
 Your main options are to enter "Words" or "Sentences".
-You can also enter "Menu" to return to the starting menu.
+You can also enter "Menu" to return to the Main Menu.
 // What will you do next? //'''.format(poe_collection.collection_name, poe_collection.num_of_stories))
                         entry = input(">>> ")
                         result = validate_entry_length(entry)
                         if result == True:
+                            entry = entry.lower()
                             if entry == "menu":
                                 stay_at_collection = False
                             elif entry not in ["words", "sentences"]:
@@ -428,20 +429,21 @@ You can also enter "Menu" to return to the starting menu.
                                         print("\n* Longest Words *")
                                         print('''The 100 words that are most commonly the longest word (or tied for the longest) in Poe's sentences have been identified.
 You can explore a list of the words and details about them, including frequencies, definitions, and sentences.
-Or you can view a pie chart displaying the distribution of centuries the words originated in.
+Or you can view a pie chart displaying the distribution of centuries the words originated in, according to dictionary entries.
 Your main options are to enter "List" or "Centuries".
-You can also enter "Collection" to return to the previous menu.
+You can also enter "Collection" to return to the Collection menu.
 // What will you do next? //''')
                                         entry = input(">>> ")
                                         result = validate_entry_length(entry)
                                         if result == True:
+                                            entry = entry.lower()
                                             if entry == "collection":
                                                 stay_at_words = False
                                             elif entry not in ["list", "centuries"]:
                                                 print("You did not enter a valid option. Try again.")
                                             else:
                                                 if entry == "centuries":
-                                                    make_pie_graph_of_centuries(longest_words)
+                                                    make_pie_chart_of_centuries(longest_words)
                                                 elif entry == "list":
                                                     stay_at_list = True
                                                     while stay_at_list:
@@ -454,7 +456,7 @@ You can also enter "Collection" to return to the previous menu.
 You can view the sentences from Poe's short stories in which a word was one of the longest words.
 Or you can see dictionary entries for the word and simliar words.
 Your main options are to enter "Sentences" or "Dictionary", followed by the word's number in the above list.
-You can also enter "Words" to return to the previous menu.
+You can also enter "Words" to return to the Longest Words menu.
 // What will you do next? //''')
                                                         entry = input(">>> ")
                                                         terms = entry.split()
