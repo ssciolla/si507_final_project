@@ -201,11 +201,12 @@ class Word:
         return string_rep
 
     def display_entries_info(self):
-        entries_string_rep = '\n* Entries for "{}" and related words from Meriam-Webster.com *\n'.format(self.word)
+        entries_string_rep = '\n* Entries for "{}" and related words from Meriam-Webster.com *'.format(self.word)
         entry_num = 0
         for entry in self.entries:
             entry_num += 1
-            entries_string_rep += "| Entry {} | \n{}".format(entry_num, entry.__str__())
+            new_entry = "\n\n| Entry {} | \n{}".format(entry_num, entry.__str__())
+            entries_string_rep += new_entry
         return entries_string_rep
 
     def collect_longest_word_appearances(self):
